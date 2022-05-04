@@ -2,7 +2,7 @@ variables:
   system.debug: true
   env: dev
   rg: ${{ parameters.applicationName }}-$(env)-global-rg
-  location: "West Europe"
+  locationRG: "West Europe"
 
 parameters:
 - name: applicationName
@@ -43,8 +43,9 @@ stages:
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
+          az bicep upgrade
           az --version
-          az group create --name $(rg) --location $(location)
+          az group create --name $(rg) --location $(locationRG)
           az deployment group create --resource-group $(rg) --template-file $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep
     # - task: AzureResourceGroupDeployment@2
     #   displayName: Azure Deployment:Create Or Update Resource Group action on $(rg)
