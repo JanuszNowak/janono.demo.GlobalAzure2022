@@ -2,7 +2,7 @@ variables:
   system.debug: true
   env: dev
   rg: ${{ parameters.applicationName }}-$(env)-global-rg
-
+  location: 'West Europe'
 
 parameters:
 - name: applicationName
@@ -37,15 +37,24 @@ stages:
   - job: provisioning_job
     steps:
     - download: ${{ parameters.build_ci }}
-    - task: AzureResourceGroupDeployment@2
-      displayName: Azure Deployment:Create Or Update Resource Group action on $(rg)
+    - task: AzureCLI@2
       inputs:
-        azureSubscription: AzureServiceConnection
-        resourceGroupName: $(rg)
-        location: West Europe
-        csmFile: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop arm/azuredeploy.json
-        csmParametersFile: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop arm/azuredeploy.parameters.json
-        overrideParameters: -applicationName ${{ parameters.applicationName }} -environmentType $(env)
+        azureSubscription: $(AzureServiceConnection)
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az --version
+          az group create --name $(rg) --location $(location)
+          az deployment group create --resource-group $(rg) --template-file $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep
+    # - task: AzureResourceGroupDeployment@2
+    #   displayName: Azure Deployment:Create Or Update Resource Group action on $(rg)
+    #   inputs:
+    #     azureSubscription: AzureServiceConnection
+    #     resourceGroupName: $(rg)
+    #     location: West Europe
+    #     csmFile: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop arm/azuredeploy.json
+    #     csmParametersFile: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop arm/azuredeploy.parameters.json
+    #     overrideParameters: -applicationName ${{ parameters.applicationName }} -environmentType $(env)
     - task: AzurePowerShell@5
       displayName: 'Azure PowerShell script: InlineScript'
       inputs:
