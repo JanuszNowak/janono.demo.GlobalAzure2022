@@ -2,7 +2,7 @@ variables:
   system.debug: true
   env: dev
   rg: ${{ parameters.applicationName }}-$(env)-global-rg
-  location: 'West Europe'
+  location: "West Europe"
 
 parameters:
 - name: applicationName
