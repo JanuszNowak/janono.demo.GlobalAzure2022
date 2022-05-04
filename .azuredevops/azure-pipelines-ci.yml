@@ -10,6 +10,8 @@ trigger:
     - master
     - release/*
     - develop
+    - hotfix/*
+    - feature/*
   paths:
     exclude:
     - .azuredevops/*
@@ -20,6 +22,8 @@ pr:
     - master
     - release/*
     - develop
+    - hotfix/*
+    - feature/*
   paths:
     exclude:
     - .azuredevops/*
