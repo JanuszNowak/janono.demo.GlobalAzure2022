@@ -41,6 +41,7 @@ jobs:
       npm install -g eclint
       eclint check
     displayName: eclint check
+    enabled: false
 
 - job: AgentJob_PreCommit
   displayName: Agent job - PreCommit
@@ -51,7 +52,8 @@ jobs:
       pip install pre-commit
       pre-commit --version
       pre-commit run --all-files
-    displayName: Execture pre-commit
+    displayName: Execute pre-commit
+    enabled: false
 
 - job: AgentJobSonar
   displayName: Agent job - Sonar
@@ -123,10 +125,6 @@ jobs:
     inputs:
       codeCoverageTool: Cobertura
       summaryFileLocation: $(System.DefaultWorkingDirectory)/**/*coverage.cobertura.xml
-
-
-  - script: dotnet pack  --configuration $(buildConfiguration) --include-symbols --output '$(Build.ArtifactStagingDirectory)'  /p:Version=$(GitVersion.FullSemVer) /p:AssemblyVersion=$(GitVersion.AssemblySemVer) /p:FileVersion=$(GitVersion.AssemblySemFileVer) /m /p:AssemblyOriginatorKeyFile=$(janonosnk.secureFilePath) /p:SignAssembly=true
-    displayName: dotnet pack
 
   - task: mspremier.BuildQualityChecks.QualityChecks-task.BuildQualityChecks@8
     displayName: Check build quality

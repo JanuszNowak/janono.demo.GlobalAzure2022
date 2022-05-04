@@ -1,0 +1,214 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.6.1.6515",
+      "templateHash": "3247885059861267809"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Specifies region of RG."
+      }
+    },
+    "storageAccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_GRS",
+        "Standard_ZRS",
+        "Premium_LRS"
+      ],
+      "metadata": {
+        "description": "Storage Account type"
+      }
+    },
+    "instLocation": {
+      "type": "array",
+      "defaultValue": [
+        "westeurope",
+        "eastus2"
+      ]
+    },
+    "instName": {
+      "type": "array",
+      "defaultValue": [
+        "euw",
+        "use2"
+      ]
+    },
+    "environmentType": {
+      "type": "string",
+      "defaultValue": "dev",
+      "allowedValues": [
+        "dev",
+        "prod",
+        "jnno",
+        "test"
+      ],
+      "metadata": {
+        "description": "Type of environment where this deployment should occur."
+      }
+    },
+    "applicationName": {
+      "type": "string",
+      "defaultValue": "gab2022",
+      "metadata": {
+        "description": "Name of Application."
+      }
+    },
+    "storageConfig": {
+      "type": "object",
+      "defaultValue": {
+        "kind": "StorageV2",
+        "accessTier": "Hot",
+        "httpsTrafficOnlyEnabled": true
+      }
+    },
+    "nameConv": {
+      "type": "object",
+      "defaultValue": {
+        "storageAccountName": "stacc",
+        "hostingPlanName": "plan",
+        "siteName": "site",
+        "trafficManagerName": "tmanager",
+        "appins": "appins"
+      }
+    }
+  },
+  "variables": {
+    "namestorage": "[format('{0}{1}', parameters('applicationName'), parameters('environmentType'))]",
+    "name": "[format('{0}-{1}', parameters('applicationName'), parameters('environmentType'))]"
+  },
+  "resources": [
+    {
+      "copy": {
+        "name": "namestorage_instName_nameConv_storageAccountName",
+        "count": "[length(parameters('instLocation'))]"
+      },
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-04-01",
+      "name": "[format('{0}{1}{2}', variables('namestorage'), parameters('instName')[copyIndex()], parameters('nameConv').storageAccountName)]",
+      "sku": {
+        "name": "[parameters('storageAccountType')]"
+      },
+      "kind": "[parameters('storageConfig').kind]",
+      "properties": {
+        "supportsHttpsTrafficOnly": "[parameters('storageConfig').httpsTrafficOnlyEnabled]",
+        "accessTier": "[parameters('storageConfig').accessTier]",
+        "encryption": {
+          "services": {
+            "blob": {
+              "enabled": true
+            },
+            "file": {
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        }
+      },
+      "tags": {
+        "displayName": "Array Storage Accounts"
+      },
+      "location": "[parameters('instLocation')[copyIndex()]]"
+    },
+    {
+      "copy": {
+        "name": "name_instName_nameConv_hostingPlanName",
+        "count": "[length(parameters('instLocation'))]"
+      },
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2021-03-01",
+      "name": "[format('{0}-{1}{2}', variables('name'), parameters('instName')[copyIndex()], parameters('nameConv').hostingPlanName)]",
+      "sku": {
+        "name": "Y1"
+      },
+      "location": "[parameters('instLocation')[copyIndex()]]"
+    },
+    {
+      "copy": {
+        "name": "name_instName_nameConv_siteName",
+        "count": "[length(parameters('instLocation'))]"
+      },
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-12-01",
+      "name": "[format('{0}-{1}{2}', variables('name'), parameters('instName')[copyIndex()], parameters('nameConv').siteName)]",
+      "location": "[parameters('instLocation')[copyIndex()]]",
+      "tags": {
+        "displayName": "Array Sites"
+      },
+      "kind": "linux",
+      "properties": {
+        "httpsOnly": true,
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}-{1}{2}', variables('name'), parameters('instName')[copyIndex()], parameters('nameConv').hostingPlanName))]",
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0}{1}{2};EndpointSuffix={3};AccountKey={4}', variables('namestorage'), parameters('instName')[copyIndex()], parameters('nameConv').storageAccountName, environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}{2}', variables('namestorage'), parameters('instName')[copyIndex()], parameters('nameConv').storageAccountName)), '2021-04-01').keys[0].value)]"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "dotnet"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~4"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', format('{0}-global-{1}', variables('name'), parameters('nameConv').appins))).InstrumentationKey]"
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "[format('InstrumentationKey={0}', reference(resourceId('Microsoft.Insights/components', format('{0}-global-{1}', variables('name'), parameters('nameConv').appins))).InstrumentationKey)]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', format('{0}-global-{1}', variables('name'), parameters('nameConv').appins))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}{2}', variables('namestorage'), parameters('instName')[copyIndex()], parameters('nameConv').storageAccountName))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}{2}', variables('namestorage'), parameters('instName')[copyIndex()], parameters('nameConv').storageAccountName))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/trafficmanagerprofiles",
+      "apiVersion": "2018-08-01",
+      "name": "[format('{0}-global-{1}', variables('name'), parameters('nameConv').trafficManagerName)]",
+      "location": "global",
+      "properties": {
+        "profileStatus": "Enabled",
+        "trafficRoutingMethod": "Priority",
+        "dnsConfig": {
+          "relativeName": "[format('{0}-global-{1}', variables('name'), parameters('nameConv').trafficManagerName)]",
+          "ttl": 30
+        },
+        "monitorConfig": {
+          "protocol": "HTTPS",
+          "port": 443,
+          "path": "/api/IsAlive"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[format('{0}-global-{1}', variables('name'), parameters('nameConv').appins)]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      }
+    }
+  ]
+}
