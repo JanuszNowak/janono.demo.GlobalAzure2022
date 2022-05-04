@@ -39,7 +39,7 @@ stages:
     - download: ${{ parameters.build_ci }}
     - task: AzureCLI@2
       inputs:
-        azureSubscription: $(AzureServiceConnection)
+        azureSubscription: AzureServiceConnection
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
