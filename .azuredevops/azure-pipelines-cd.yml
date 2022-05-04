@@ -47,7 +47,7 @@ stages:
           az bicep upgrade
           az --version
           az group create --name $(rg) --location $(locationRG)
-          az deployment group create --resource-group $(rg) --template-file $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep
+          az deployment group create --resource-group $(rg) --template-file '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep'
     # - task: AzureResourceGroupDeployment@2
     #   displayName: Azure Deployment:Create Or Update Resource Group action on $(rg)
     #   inputs:
