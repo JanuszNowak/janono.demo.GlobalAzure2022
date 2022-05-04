@@ -1,0 +1,39 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32421.90
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E859241E-F371-4E0E-A7E1-F90876AF0617}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{81FEA4DB-3E41-42FA-AC8F-5E4F5442FC3E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "janono.demo.GlobalAzure2022.FunctionApp", "src\janono.demo.GlobalAzure2022.FunctionApp\janono.demo.GlobalAzure2022.FunctionApp.csproj", "{71D520DE-F72B-410C-8857-B5C076A305F9}"
+EndProject
+Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "janono.demo.GlobalAzure2022.ResourceGroup", "src\janono.demo.GlobalAzure2022.ResourceGroup\janono.demo.GlobalAzure2022.ResourceGroup.deployproj", "{F9D3AF2A-8F8D-4C7E-B1EF-86993092EC6E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{71D520DE-F72B-410C-8857-B5C076A305F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71D520DE-F72B-410C-8857-B5C076A305F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71D520DE-F72B-410C-8857-B5C076A305F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71D520DE-F72B-410C-8857-B5C076A305F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9D3AF2A-8F8D-4C7E-B1EF-86993092EC6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9D3AF2A-8F8D-4C7E-B1EF-86993092EC6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9D3AF2A-8F8D-4C7E-B1EF-86993092EC6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9D3AF2A-8F8D-4C7E-B1EF-86993092EC6E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{71D520DE-F72B-410C-8857-B5C076A305F9} = {E859241E-F371-4E0E-A7E1-F90876AF0617}
+		{F9D3AF2A-8F8D-4C7E-B1EF-86993092EC6E} = {E859241E-F371-4E0E-A7E1-F90876AF0617}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {76425096-37EA-47AC-9DBA-418248E0088C}
+	EndGlobalSection
+EndGlobal
