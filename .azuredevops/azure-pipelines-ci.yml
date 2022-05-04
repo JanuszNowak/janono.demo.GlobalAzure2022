@@ -33,6 +33,7 @@ variables:
 
 jobs:
 - job: AgentJobCode_Formatting
+  enabled: false
   displayName: Agent job - Code Formatting
   pool:
     vmImage: ubuntu-latest
@@ -44,6 +45,7 @@ jobs:
     enabled: false
 
 - job: AgentJob_PreCommit
+  enabled: false
   displayName: Agent job - PreCommit
   pool:
     vmImage: ubuntu-latest
@@ -56,6 +58,7 @@ jobs:
     enabled: false
 
 - job: AgentJobSonar
+  enabled: false
   displayName: Agent job - Sonar
   pool:
     vmImage: ubuntu-latest
