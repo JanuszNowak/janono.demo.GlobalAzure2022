@@ -39,10 +39,11 @@ stages:
     - download: ${{ parameters.build_ci }}
     - task: AzureCLI@2
       inputs:
-        azureSubscription: AzureServiceConnection
-        scriptType: bash
-        scriptLocation: inlineScript
+        azureSubscription: 'AzureServiceConnection'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
         inlineScript: |
+          az upgrade
           az bicep upgrade
           az --version
           az group create --name $(rg) --location $(locationRG)
