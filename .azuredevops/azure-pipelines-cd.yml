@@ -82,9 +82,9 @@ stages:
     strategy:
       matrix:
         euw:
-          location: "euw"
+          location: euw
         use2:
-          location: "use2"
+          location: use2
     steps:
     - download: ${{ parameters.build_ci }}
     - task: AzureFunctionApp@1
