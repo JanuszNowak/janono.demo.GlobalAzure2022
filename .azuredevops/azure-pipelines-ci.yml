@@ -1,139 +1,66 @@
+pool:
+  name: Azure Pipelines
+variables:
+  buildConfiguration: Release
+  system.debug: true
+
 trigger:
-- master
-- develop
-- feature/*
-- release/*
-- hotfix/*
+  branches:
+    include:
+    - master
+    - release/*
+    - develop
+  paths:
+    exclude:
+    - .azuredevops/*
 
 pr:
   branches:
     include:
     - master
+    - release/*
     - develop
-    - releases/*
-    - hot/*
-    exclude:
-    - releases/old*
   paths:
-    include:
-    - '*' # same as '/' for the repository root
     exclude:
-    - docs/*   # same as 'docs/'
+    - .azuredevops/*
 
-pool:
-  vmImage: ubuntu-latest
+steps:
+- task: DotNetCoreCLI@2
+  displayName: Build project
+  inputs:
+    projects: '**/*.csproj'
+    arguments: --output publish_output --configuration $(buildConfiguration)
 
-variables:
-  buildConfiguration: Release
-  dotNetVersion: 6.0.x
-  dotNetFramework: net6.0
-  targetRuntime: linux-x64
-  projectKey: JanuszNowak_janono.ado.testcase.associate
-  system.debug: true
+- task: ArchiveFiles@2
+  displayName: Archive files
+  inputs:
+    rootFolderOrFile: publish_output/
+    includeRootFolder: false
 
-jobs:
-# - job: AgentJobCode_Formatting
-#   displayName: Agent job - Code Formatting
-#   pool:
-#     vmImage: ubuntu-latest
-#   steps:
-#   - bash: |
-#       npm install -g eclint
-#       eclint check
-#     displayName: eclint check
-#     enabled: false
+- task: DotNetCoreCLI@2
+  displayName: test
+  inputs:
+    command: test
+    projects: '**/*.csproj'
+    arguments: --configuration $(buildConfiguration) --collect "Code coverage"
+    workingDirectory: $(System.DefaultWorkingDirectory)
 
-# - job: AgentJob_PreCommit
-#   displayName: Agent job - PreCommit
-#   pool:
-#     vmImage: ubuntu-latest
-#   steps:
-#   - script: |
-#       pip install pre-commit
-#       pre-commit --version
-#       pre-commit run --all-files
-#     displayName: Execute pre-commit
-#     enabled: false
+- task: PublishTestResults@2
+  displayName: Publish Test Results **/*.trx
+  inputs:
+    testResultsFormat: VSTest
+    testResultsFiles: '**/*.trx'
+    searchFolder: '$(Agent.TempDirectory) '
+    mergeTestResults: true
+    failTaskOnFailedTests: true
+    buildConfiguration: $(buildConfiguration)
+  enabled: false
 
-# - job: AgentJobSonar
-#   displayName: Agent job - Sonar
-#   pool:
-#     vmImage: ubuntu-latest
-#   steps:
-#   - task: gitversion/setup@0
-#     displayName: gitversion/setup
-#     inputs:
-#       versionSpec: 5.x
-#       includePrerelease: true
-#   - task: gitversion/execute@0
-#     displayName: gitversion/execute
-  # - task: SonarCloudPrepare@1
-  #   displayName: Prepare analysis on SonarCloud
-  #   inputs:
-  #     SonarCloud: sonarcloud.io
-  #     organization: janusznowak-github
-  #     scannerMode: CLI
-  #     configMode: manual
-  #     cliProjectKey: JanuszNowak_janono.ado.testcase.associate
-  #     cliProjectName: JanuszNowak/janono.ado.testcase.associate
-  #     cliProjectVersion: $(Build.BuildNumber)
-  #     extraProperties: |
-  #       # Additional properties that will be passed to the scanner,
-  #       # Put one key=value per line, example:
-  #       # sonar.exclusions=**/*.bin
-  #               sonar.branch.name=$(Build.SourceBranchName)
-  # - task: SonarCloudAnalyze@1
-  #   displayName: Run Code Analysis
-  # - task: SonarCloudPublish@1
-  #   displayName: Publish Quality Gate Result
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
 
-
-- job: AgentJobMain
-  displayName: Agent job - Main
-  pool:
-    vmImage: ubuntu-latest
-  steps:
-  - task: gitversion/setup@0
-    displayName: gitversion/setup
-    inputs:
-      versionSpec: 5.x
-      includePrerelease: true
-  - task: gitversion/execute@0
-    displayName: gitversion/execute
-
-  - task: UseDotNet@2
-    inputs:
-      version: $(dotNetVersion)
-      includePreviewVersions: true
-
-  - script: dotnet build --configuration $(buildConfiguration) /p:Version=$(GitVersion.FullSemVer) /p:AssemblyVersion=$(GitVersion.AssemblySemVer) /p:FileVersion=$(GitVersion.AssemblySemFileVer) /m /p:AssemblyOriginatorKeyFile=$(janonosnk.secureFilePath) /p:SignAssembly=true
-    displayName: dotnet build
-
-  - script: dotnet test --configuration $(buildConfiguration) --logger trx --collect:"XPlat Code Coverage"
-  #--collect "Code Coverage" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
-    displayName: dotnet test
-
-  - task: PublishTestResults@2
-    displayName: Publish Test Results **/TestResults/*.trx
-    inputs:
-      testResultsFormat: VSTest
-      testResultsFiles: '**/TestResults/*.trx'
-      mergeTestResults: true
-
-  - task: PublishCodeCoverageResults@1
-    displayName: Publish code coverage
-    inputs:
-      codeCoverageTool: Cobertura
-      summaryFileLocation: $(System.DefaultWorkingDirectory)/**/*coverage.cobertura.xml
-
-  - task: mspremier.BuildQualityChecks.QualityChecks-task.BuildQualityChecks@8
-    displayName: Check build quality
-    inputs:
-      checkWarnings: true
-      checkCoverage: true
-    enabled: false
-
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: $(Build.ArtifactStagingDirectory)
-      artifactName: drop
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop arm'
+  inputs:
+    PathtoPublish: src/janono.demo.GlobalAzure2022.ResourceGroup
+    ArtifactName: drop bicep
