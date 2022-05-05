@@ -87,8 +87,7 @@ resource name_instName_nameConv_siteName 'Microsoft.Web/sites@2020-12-01' = [for
   tags: {
     displayName: 'Array Sites'
   }
-  // kind: 'functionapp'
-  kind: 'linux'
+  kind: 'functionapp'
   properties: {
     httpsOnly: true
     serverFarmId: resourceId('Microsoft.Web/serverfarms', '${name}-${instName[i]}${nameConv.hostingPlanName}')
