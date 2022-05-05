@@ -266,6 +266,9 @@ resource trafficManagerAzureEndpoint 'Microsoft.Network/trafficManagerProfiles/a
 
 //az group create --name ExampleGroup2 --location "westeurope"
 //az deployment group create --name ExampleDeployment --resource-group ExampleGroup2 --template-file .\main.bicep --mode Complete
+//az deployment group what-if --resource-group ExampleGroup3 --template-file .\main.bicep
+//az deployment group validate --resource-group ExampleGroup3 --template-file .\main.bicep
+//Get-AzLocation | Where-Object {$_.Providers -contains "Microsoft.Web"}  | select Location| Trim()
 resource name_global_nameConv_appins 'Microsoft.Insights/components@2020-02-02' = {
   name: '${name}-global-${nameConv.appins}'
   location: location
