@@ -11,22 +11,101 @@ param location string = resourceGroup().location
 param storageAccountType string = 'Standard_LRS'
 
 param instLocation array = [
-  'westeurope'
+  // 'eastasia'
+  // 'southeastasia'
+  // 'centralus'
+  // 'eastus'
   'eastus2'
+  'westus'
+  'northcentralus'
+  'southcentralus'
+  'northeurope'
+  'westeurope'
+  'japanwest'
+  'japaneast'
+  // //'brazilsout'
+  // 'australiaeast'
+  // 'australiasoutheast'
+  // 'southindia'
+  // 'centralindia'
+  // 'westindia'
+  // 'canadacentral'
+  // 'canadaeast'
+  // 'uksouth'
+  // 'ukwest'
+  // 'westcentralus'
+  // 'westus2'
+  // 'koreacentral'
+  // 'koreasouth'
+  // 'francecentral'
+  // //'francesouth'
+  // 'australiacentral'
+  // //'uaecentral'
+  // 'uaenorth'
+  // 'southafricanorth'
+  // //'southafricawest'
+  // 'switzerlandnorth'
+  // //'switzerlandwest'
+  // //'germanynorth'
+  // 'germanywestcentral'
+  // //'norwaywest'
+  // 'norwayeast'
+  // //'brazilsoutheast'
+  // 'westus3'
+
 ]
 param instName array = [
-  'euw'
+  // 'ase'
+  // 'asse'
+  // 'usc'
+  // 'use'
   'use2'
+  'usw'
+  'usnc'
+  'ussc'
+  'eun'
+  'euw'
+  'jaw'
+  'jae'
+  // //'brs'
+  // 'aue'
+  // 'ause'
+  // 'ins'
+  // 'inc'
+  // 'inw'
+  // 'cac'
+  // 'cae'
+  // 'uks'
+  // 'ukw'
+  // 'uswc'
+  // 'usw2'
+  // 'koc'
+  // 'kos'
+  // 'frc'
+  // //'frs'
+  // 'auc'
+  // //'uac'
+  // 'uan'
+  // 'asn'
+  // //'asw'
+  // 'swn'
+  // //'sww'
+  // //'gen'
+  // 'gewc'
+  // //'now'
+  // 'noe'
+  // //'brse'
+  // 'usw3'
 ]
 
-param switchVal string
-var myVar = {
-  first: 'name1'
-  second: 'name2'
-  third: 'name3'
-}
+// param switchVal string
+// var myVar = {
+//   first: 'name1'
+//   second: 'name2'
+//   third: 'name3'
+// }
 
-var chosenName = myVar[switchVal]
+// var chosenName = myVar[switchVal]
 
 
 @description('Type of environment where this deployment should occur.')
@@ -133,6 +212,9 @@ resource name_instName_nameConv_siteName 'Microsoft.Web/sites@2020-12-01' = [for
 resource trafficManagerProfile 'Microsoft.Network/trafficManagerProfiles@2018-08-01' = {
   name: '${name}-global-${nameConv.trafficManagerName}'
   location: 'global'
+  dependsOn:[
+    name_instName_nameConv_siteName
+  ]
   properties: {
     profileStatus: 'Enabled'
     trafficRoutingMethod: 'Priority'
@@ -170,6 +252,9 @@ resource trafficManagerProfile 'Microsoft.Network/trafficManagerProfiles@2018-08
 resource trafficManagerAzureEndpoint 'Microsoft.Network/trafficManagerProfiles/azureEndpoints@2018-08-01' = [for (item, i) in instLocation: {
   name: '${name}-${instName[i]}${nameConv.siteName}'
   parent: trafficManagerProfile
+  dependsOn:[
+    name_instName_nameConv_siteName
+  ]
   properties: {
     endpointMonitorStatus: 'Online'
     targetResourceId:  resourceId('Microsoft.Web/sites', '${name}-${instName[i]}${nameConv.siteName}')
