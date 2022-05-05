@@ -174,6 +174,9 @@ resource name_instName_nameConv_hostingPlanName 'Microsoft.Web/serverfarms@2021-
 resource name_instName_nameConv_siteName 'Microsoft.Web/sites@2020-12-01' = [for (item, i) in instLocation: {
   name: '${name}-${instName[i]}${nameConv.siteName}'
   location: item
+  dependsOn:[
+    name_instName_nameConv_hostingPlanName
+  ]
   tags: {
     displayName: 'Array Sites'
   }
