@@ -77,6 +77,7 @@ resource name_instName_nameConv_hostingPlanName 'Microsoft.Web/serverfarms@2021-
   sku: {
     name: 'Y1'//Dynamic
   }
+  kind: 'linux'
   location: item
   name: '${name}-${instName[i]}${nameConv.hostingPlanName}'
 }]
@@ -95,13 +96,8 @@ resource name_instName_nameConv_siteName 'Microsoft.Web/sites@2020-12-01' = [for
       appSettings: [
         {
           name: 'AzureWebJobsStorage'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${namestorage}${instName[i]}${nameConv.storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(namestorage_instName_nameConv_storageAccountName[i].id, namestorage_instName_nameConv_storageAccountName[i].apiVersion).keys[0].value}'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${namestorage}${instName[i]}${nameConv.storageAccountName};AccountKey=${listKeys(namestorage_instName_nameConv_storageAccountName[i].id, namestorage_instName_nameConv_storageAccountName[i].apiVersion).keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
         }
-        // {
-        //   name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-        //   value: 'DefaultEndpointsProtocol=https;AccountName=$${namestorage}${instName[i]}${nameConv.storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(namestorage_instName_nameConv_storageAccountName[i].id, namestorage_instName_nameConv_storageAccountName[i].apiVersion).keys[0].value}'
-        // }
-
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
           value: 'dotnet'
@@ -116,61 +112,13 @@ resource name_instName_nameConv_siteName 'Microsoft.Web/sites@2020-12-01' = [for
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: 'InstrumentationKey=${name_global_nameConv_appins.properties.InstrumentationKey}'
+          value: 'InstrumentationKey=${name_global_nameConv_appins.properties.ConnectionString}'
         }
       ]
     }
   }
 
 }]
-
-// resource function 'Microsoft.Web/sites/functions@2020-12-01' = {
-//   name: '${functionApp.name}/${functionNameComputed}'
-//   properties: {
-//     config: {
-//       disabled: false
-//       bindings: [
-//         {
-//           name: 'req'
-//           type: 'httpTrigger'
-//           direction: 'in'
-//           authLevel: 'function'
-//           methods: [
-//             'get'
-//           ]
-//         }
-//         {
-//           name: '$return'
-//           type: 'http'
-//           direction: 'out'
-//         }
-//       ]
-//     }
-//     files: {
-//       'run.csx': loadTextContent('run.csx')
-//     }
-//   }
-// }
-
-
-// resource name_global_nameConv_trafficManagerName 'Microsoft.Network/trafficManagerProfiles@2015-11-01' = {
-//   location: 'global'
-//   properties: {
-//     profileStatus: 'Enabled'
-//     trafficRoutingMethod: 'Performance'
-//     dnsConfig: {
-//       relativeName: '${name}-global-${nameConv.trafficManagerName}'
-//       ttl: 30
-//     }
-//     monitorConfig: {
-//       protocol: 'HTTPS'
-//       port: 443
-//       path: '/api/IsAlive'
-//     }
-//   }
-//   name: '${name}-global-${nameConv.trafficManagerName}'
-// }
-
 
 resource trafficManagerProfile 'Microsoft.Network/trafficManagerProfiles@2018-08-01' = {
   name: '${name}-global-${nameConv.trafficManagerName}'
@@ -209,7 +157,17 @@ resource trafficManagerProfile 'Microsoft.Network/trafficManagerProfiles@2018-08
   }
 }
 
+resource trafficManagerAzureEndpoint 'Microsoft.Network/trafficManagerProfiles/azureEndpoints@2018-08-01' = [for (item, i) in instLocation: {
+  name: '${name}-${instName[i]}${nameConv.siteName}'
+  parent: trafficManagerProfile
+  properties: {
+    endpointMonitorStatus: 'Online'
+    targetResourceId:  resourceId('Microsoft.Web/sites', '${name}-${instName[i]}${nameConv.siteName}')
+  }
+}]
 
+//az group create --name ExampleGroup2 --location "westeurope"
+//az deployment group create --name ExampleDeployment --resource-group ExampleGroup2 --template-file .\main.bicep --mode Complete
 resource name_global_nameConv_appins 'Microsoft.Insights/components@2020-02-02' = {
   name: '${name}-global-${nameConv.appins}'
   location: location
@@ -220,26 +178,3 @@ resource name_global_nameConv_appins 'Microsoft.Insights/components@2020-02-02' 
     publicNetworkAccessForQuery: 'Enabled'
   }
 }
-
-// resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
-//   name: keyVaultName
-//   location: location
-//   properties: {
-//     tenantId: subscription().tenantId
-//     sku: {
-//       family: 'A'
-//       name: keyVaultSku
-//     }
-//     accessPolicies: []
-//   }
-// }
-
-// resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
-//   name: '${keyVault.name}/${functionAppKeySecretName}'
-//   properties: {
-//     value: listKeys('${functionApp.id}/host/default', functionApp.apiVersion).functionKeys.default
-//   }
-// }
-
-// output functionAppHostName string = functionApp.properties.defaultHostName
-// output functionName string = functionNameComputed
