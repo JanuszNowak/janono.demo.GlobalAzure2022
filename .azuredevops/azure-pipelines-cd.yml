@@ -117,11 +117,13 @@ stages:
                       }
                   $output+="}"
           $output
-          "##vso[task.setvariable variable=locationMatrix3;isOutput=true;]$output"
+          echo "##vso[task.setvariable variable=locationMatrix3;isOutput=true;]$output"
   - job: AppDeploy_job
-    dependsOn: ['AppDeploy_jobYY']
+    dependsOn: AppDeploy_jobYY
+    variables:
+      locationMatrix3: $[ dependencies.AppDeploy_jobYY.outputs['setvarStep.locationMatrix3'] ]
     strategy:
-      matrix: $[ dependencies.AppDeploy_jobYY.outputs['setVariable.locationMatrix3'] ]
+      matrix: $[ variables.locationMatrix3 ]
       #matrix: $[ variables.locationMatrix2 ]
         # euw:
         #   location: euw
@@ -134,7 +136,7 @@ stages:
       inputs:
         azureSubscription: AzureServiceConnection
         appType: functionApp
-        appName: ${{ parameters.applicationName }}-$(env)-$(location)site
+        appName: ${{ parameters.applicationName }}-$(env)-$(instName)site
         package: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop/*.zip
 
 - ${{ if eq(parameters.destroy, true) }}:
