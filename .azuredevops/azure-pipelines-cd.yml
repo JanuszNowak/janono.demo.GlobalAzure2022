@@ -104,7 +104,7 @@ stages:
       displayName: 'Azure Function App Deploy: ${{ parameters.applicationName }}-$(env)-$(instName)site'
       inputs:
         azureSubscription: AzureServiceConnection
-        appType: functionApp
+        appType: functionAppLinux # default is functionApp
         appName: ${{ parameters.applicationName }}-$(env)-$(instName)site
         package: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop/*.zip
 
