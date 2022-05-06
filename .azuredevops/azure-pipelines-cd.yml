@@ -130,7 +130,7 @@ stages:
     steps:
     - download: ${{ parameters.build_ci }}
     - task: AzureFunctionApp@1
-      displayName: 'Azure Function App Deploy: ${{ parameters.applicationName }}-$(env)-$(location)site'
+      displayName: 'Azure Function App Deploy: ${{ parameters.applicationName }}-$(env)-$(instName)site'
       inputs:
         azureSubscription: AzureServiceConnection
         appType: functionApp
