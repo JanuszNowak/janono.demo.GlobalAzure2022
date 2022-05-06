@@ -53,7 +53,7 @@ stages:
           az deployment group create --resource-group $(rg) --template-file '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep' --parameters '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.$(env).parameters.json'
 
 - stage: Application_Deploy
-  displayName: Application Deploy
+  displayName: Application Deploy Stage
   jobs:
   - job: generator
     displayName: Generate Matrix
