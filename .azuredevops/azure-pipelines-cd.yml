@@ -2,9 +2,7 @@ variables:
   system.debug: true
   env: dev
   rg: ${{ parameters.applicationName }}-$(env)-global-rg
-  locationRG: "westeurope"
-  # name: locationMatrix
-  # value: 'use2','usw','usnc','ussc'  
+  locationRG: "westeurope"  
   locationMatrix2: "{'use2':{'location':'use2'},'usw':{'location':'usw'},'usnc' :{'location':'usnc'},'ussc':{'location':'ussc'}}"
 
 parameters:
@@ -36,6 +34,7 @@ pool:
 
 stages:
 - stage: provisioning
+  displayName: Provisioning Stage
   jobs:
   - job: provisioning_job
     steps:
@@ -51,49 +50,12 @@ stages:
           az --version
           az group create --name $(rg) --location $(locationRG)
           az deployment group create --resource-group $(rg) --template-file '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep' --parameters '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.$(env).parameters.json'
-    # - task: AzureResourceGroupDeployment@2
-    #   displayName: Azure Deployment:Create Or Update Resource Group action on $(rg)
-    #   inputs:
-    #     azureSubscription: AzureServiceConnection
-    #     resourceGroupName: $(rg)
-    #     location: West Europe
-    #     csmFile: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop arm/azuredeploy.json
-    #     csmParametersFile: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop arm/azuredeploy.parameters.json
-    #     overrideParameters: -applicationName ${{ parameters.applicationName }} -environmentType $(env)
-    # - task: AzurePowerShell@5
-    #   displayName: 'Azure PowerShell script: InlineScript'
-    #   inputs:
-    #     azureSubscription: AzureServiceConnection
-    #     ScriptType: InlineScript
-    #     Inline: |
-    #       Write-Host $(rg)
-    #       $resourceGroupName = "$(rg)"
-    #       $webSites=Get-AzWebApp -ResourceGroupName $resourceGroupName
-    #       $TmProfile = get-AzTrafficManagerProfile -ResourceGroupName $resourceGroupName
-    #       foreach($web in $webSites)
-    #       {
-    #           if($TmProfile.Endpoints.Count -eq 0)
-    #           {
-    #               Write-Output "Adding 1 endpoint"
-    #               Add-AzTrafficManagerEndpointConfig -EndpointName $web.Name -TrafficManagerProfile $TmProfile -Type AzureEndpoints -Target $web.HostNames[0] -EndpointLocation $web.Location -EndpointStatus Enabled -TargetResourceId $web.Id
-    #           }
-    #           else
-    #           {
-    #               if(($TmProfile.Endpoints -ne $null) -and ($TmProfile.Endpoints.Name.Contains($web.Name) -eq $false))
-    #               {
-    #                   Write-Output "Adding next endpoint"
-    #                   Add-AzTrafficManagerEndpointConfig -EndpointName $web.Name -TrafficManagerProfile $TmProfile -Type AzureEndpoints -Target $web.HostNames[0] -EndpointLocation $web.Location -EndpointStatus Enabled -TargetResourceId $web.Id
-    #               }
-    #           }
-    #       }
-    #       Set-AzTrafficManagerProfile -TrafficManagerProfile $TmProfile
-    #     azurePowerShellVersion: LatestVersion
-    #     pwsh: true
 
-
-- stage: AppDeploy
+- stage: Application_Deploy
+  displayName: Application Deploy
   jobs:
   - job: generator
+    displayName: Generate Matrix
     steps:
     - download: ${{ parameters.build_ci }}
     - task: PowerShell@2
@@ -120,8 +82,9 @@ stages:
           $output
           echo "##vso[task.setVariable variable=legs;isOutput=true]$output"
 
-  - job: AppDeploy_job
-    dependsOn: generator    
+  - job: Application_Deploy_Job
+    displayName: Application Deploy
+    dependsOn: generator
     strategy:
       matrix: $[ dependencies.generator.outputs['mtrx.legs'] ]
       #matrix: $[ variables.locationMatrix2 ]
@@ -133,7 +96,7 @@ stages:
     - task: PowerShell@2
       inputs:
         targetType: 'inline'
-        script: |          
+        script: |
           Write-Host $(instName)
         pwsh: true
     - download: ${{ parameters.build_ci }}
