@@ -43,17 +43,14 @@ stages:
     - task: AzureCLI@2
       inputs:
         azureSubscription: 'AzureServiceConnection'
-        scriptType: pscore
+        scriptType: bash
         scriptLocation: 'inlineScript'
-        inlineScript: >
+        inlineScript: |
           az upgrade
           az bicep upgrade
           az --version
           az group create --name $(rg) --location $(locationRG)
-          az deployment group create
-          --resource-group $(rg)
-          --template-file '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep'
-          --parameters '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.$(env).parameters.json'
+          az deployment group create --resource-group $(rg) --template-file '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep' --parameters '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.$(env).parameters.json'
     # - task: AzureResourceGroupDeployment@2
     #   displayName: Azure Deployment:Create Or Update Resource Group action on $(rg)
     #   inputs:
