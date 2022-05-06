@@ -37,6 +37,7 @@ stages:
   displayName: Provisioning Stage
   jobs:
   - job: provisioning_job
+    displayName: Provisioning Job
     steps:
     - download: ${{ parameters.build_ci }}
     - task: AzureCLI@2
@@ -59,6 +60,7 @@ stages:
     steps:
     - download: ${{ parameters.build_ci }}
     - task: PowerShell@2
+      displayName: Generate Matrix variable
       name: mtrx
       inputs:
         targetType: 'inline'
@@ -93,12 +95,6 @@ stages:
         # use2:
         #   location: use2
     steps:
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host $(instName)
-        pwsh: true
     - download: ${{ parameters.build_ci }}
     - task: AzureFunctionApp@1
       displayName: 'Azure Function App Deploy: ${{ parameters.applicationName }}-$(env)-$(instName)site'
@@ -109,11 +105,12 @@ stages:
         package: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop/*.zip
 
 
-
 - ${{ if eq(parameters.destroy, true) }}:
   - stage: Deprovision
+    displayName: Deprovision Stage
     jobs:
     - job: Deprovision_job
+      displayName: Deprovision Job
       steps:
       - task: AzureResourceGroupDeployment@2
         displayName: Azure Deployment:DeleteRG action on $(rg)
