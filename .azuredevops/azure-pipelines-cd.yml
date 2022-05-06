@@ -57,35 +57,35 @@ stages:
     #     csmFile: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop arm/azuredeploy.json
     #     csmParametersFile: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop arm/azuredeploy.parameters.json
     #     overrideParameters: -applicationName ${{ parameters.applicationName }} -environmentType $(env)
-    - task: AzurePowerShell@5
-      displayName: 'Azure PowerShell script: InlineScript'
-      inputs:
-        azureSubscription: AzureServiceConnection
-        ScriptType: InlineScript
-        Inline: |
-          Write-Host $(rg)
-          $resourceGroupName = "$(rg)"
-          $webSites=Get-AzWebApp -ResourceGroupName $resourceGroupName
-          $TmProfile = get-AzTrafficManagerProfile -ResourceGroupName $resourceGroupName
-          foreach($web in $webSites)
-          {
-              if($TmProfile.Endpoints.Count -eq 0)
-              {
-                  Write-Output "Adding 1 endpoint"
-                  Add-AzTrafficManagerEndpointConfig -EndpointName $web.Name -TrafficManagerProfile $TmProfile -Type AzureEndpoints -Target $web.HostNames[0] -EndpointLocation $web.Location -EndpointStatus Enabled -TargetResourceId $web.Id
-              }
-              else
-              {
-                  if(($TmProfile.Endpoints -ne $null) -and ($TmProfile.Endpoints.Name.Contains($web.Name) -eq $false))
-                  {
-                      Write-Output "Adding next endpoint"
-                      Add-AzTrafficManagerEndpointConfig -EndpointName $web.Name -TrafficManagerProfile $TmProfile -Type AzureEndpoints -Target $web.HostNames[0] -EndpointLocation $web.Location -EndpointStatus Enabled -TargetResourceId $web.Id
-                  }
-              }
-          }
-          Set-AzTrafficManagerProfile -TrafficManagerProfile $TmProfile
-        azurePowerShellVersion: LatestVersion
-        pwsh: true
+    # - task: AzurePowerShell@5
+    #   displayName: 'Azure PowerShell script: InlineScript'
+    #   inputs:
+    #     azureSubscription: AzureServiceConnection
+    #     ScriptType: InlineScript
+    #     Inline: |
+    #       Write-Host $(rg)
+    #       $resourceGroupName = "$(rg)"
+    #       $webSites=Get-AzWebApp -ResourceGroupName $resourceGroupName
+    #       $TmProfile = get-AzTrafficManagerProfile -ResourceGroupName $resourceGroupName
+    #       foreach($web in $webSites)
+    #       {
+    #           if($TmProfile.Endpoints.Count -eq 0)
+    #           {
+    #               Write-Output "Adding 1 endpoint"
+    #               Add-AzTrafficManagerEndpointConfig -EndpointName $web.Name -TrafficManagerProfile $TmProfile -Type AzureEndpoints -Target $web.HostNames[0] -EndpointLocation $web.Location -EndpointStatus Enabled -TargetResourceId $web.Id
+    #           }
+    #           else
+    #           {
+    #               if(($TmProfile.Endpoints -ne $null) -and ($TmProfile.Endpoints.Name.Contains($web.Name) -eq $false))
+    #               {
+    #                   Write-Output "Adding next endpoint"
+    #                   Add-AzTrafficManagerEndpointConfig -EndpointName $web.Name -TrafficManagerProfile $TmProfile -Type AzureEndpoints -Target $web.HostNames[0] -EndpointLocation $web.Location -EndpointStatus Enabled -TargetResourceId $web.Id
+    #               }
+    #           }
+    #       }
+    #       Set-AzTrafficManagerProfile -TrafficManagerProfile $TmProfile
+    #     azurePowerShellVersion: LatestVersion
+    #     pwsh: true
 
 - stage: AppDeploy
   jobs:
