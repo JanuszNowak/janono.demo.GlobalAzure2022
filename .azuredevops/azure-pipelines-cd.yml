@@ -126,7 +126,7 @@ stages:
     variables:
       locationMatrix3: $[ dependencies.AppDeploy_jobYY.outputs['setvarStep.locationMatrix3'] ]
     strategy:
-      matrix: $(locationMatrix3)
+      matrix: $[ variables.locationMatrix3 ]
       #matrix: $[ variables.locationMatrix2 ]
         # euw:
         #   location: euw
