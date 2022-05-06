@@ -93,10 +93,11 @@ stages:
 
 - stage: AppDeploy
   jobs:
-  - job: AppDeploy_jobYY
+  - job: generator
     steps:
     - download: ${{ parameters.build_ci }}
     - task: PowerShell@2
+      name: mtrx
       inputs:
         targetType: 'inline'
         script: |
@@ -117,13 +118,12 @@ stages:
                       }
                   $output+="}"
           $output
-          echo "##vso[task.setvariable variable=locationMatrix3;isOutput=true;]$output"
+          echo "##vso[task.setVariable variable=legs;isOutput=true]$output"
+
   - job: AppDeploy_job
-    dependsOn: AppDeploy_jobYY
-    variables:
-      locationMatrix3: $[ dependencies.AppDeploy_jobYY.outputs['setvarStep.locationMatrix3'] ]
+    dependsOn: generator    
     strategy:
-      matrix: $[ variables.locationMatrix3 ]
+      matrix: $[ dependencies.generator.outputs['mtrx.legs'] ]
       #matrix: $[ variables.locationMatrix2 ]
         # euw:
         #   location: euw
