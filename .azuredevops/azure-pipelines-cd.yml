@@ -5,7 +5,7 @@ variables:
   locationRG: "westeurope"
   # name: locationMatrix
   # value: 'use2','usw','usnc','ussc'  
-  locationMatrix2: "{'use2' : {'location' : 'use2'} , {'usw' : {'location' : 'usw'} , {'usnc' :{'location':'usnc'},{'ussc':{'location':'ussc'}}"
+  locationMatrix2: "{'use2':{'location':'use2'},'usw':{'location':'usw'},'usnc' :{'location':'usnc'},'ussc':{'location':'ussc'}}"
 
 parameters:
 - name: applicationName
