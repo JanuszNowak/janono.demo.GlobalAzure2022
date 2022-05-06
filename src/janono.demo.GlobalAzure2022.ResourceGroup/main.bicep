@@ -135,6 +135,8 @@ param nameConv object = {
 var namestorage = '${applicationName}${environmentType}'
 var name = '${applicationName}-${environmentType}'
 
+
+
 resource namestorage_instName_nameConv_storageAccountName 'Microsoft.Storage/storageAccounts@2021-04-01' = [for (item, i) in instLocation: {
   sku: {
     name: storageAccountType
@@ -269,6 +271,7 @@ resource trafficManagerAzureEndpoint 'Microsoft.Network/trafficManagerProfiles/a
 //az deployment group what-if --resource-group ExampleGroup3 --template-file .\main.bicep
 //az deployment group validate --resource-group ExampleGroup3 --template-file .\main.bicep
 //Get-AzLocation | Where-Object {$_.Providers -contains "Microsoft.Web"}  | select Location| Trim()
+//az bicep build --file .\main.bicep --stdout
 resource name_global_nameConv_appins 'Microsoft.Insights/components@2020-02-02' = {
   name: '${name}-global-${nameConv.appins}'
   location: location
