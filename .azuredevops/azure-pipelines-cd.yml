@@ -90,11 +90,39 @@ stages:
     #     azurePowerShellVersion: LatestVersion
     #     pwsh: true
 
+
 - stage: AppDeploy
   jobs:
+  - job: AppDeploy_jobYY
+    steps:
+    - download: ${{ parameters.build_ci }}
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          $json=Get-Content -Raw -Path '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.dev.parameters.json'| Out-String | ConvertFrom-Json
+          $foo="instName"
+          $line=$json.parameters.psobject.properties.Where({$_.name -eq $foo}).value
+
+              $i=0;
+          $output="{";
+                  foreach($a in $line.value)
+                  {
+                      $output+="'$a':{'$foo':'$a'}"
+                      $i++
+                      if($i -lt $line.value.Length)
+                      {
+                          $output+=","
+                          }
+                      }
+                  $output+="}"
+          $output
+          "##vso[task.setvariable variable=locationMatrix3;isOutput=true;]$output"
   - job: AppDeploy_job
+    dependsOn: ['AppDeploy_jobYY']
     strategy:
-      matrix: $[ variables.locationMatrix2 ]
+      matrix: $[ dependencies.AppDeploy_jobYY.outputs['setVariable.locationMatrix3'] ]
+      #matrix: $[ variables.locationMatrix2 ]
         # euw:
         #   location: euw
         # use2:
