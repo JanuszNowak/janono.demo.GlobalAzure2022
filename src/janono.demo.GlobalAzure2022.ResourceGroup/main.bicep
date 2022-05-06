@@ -118,7 +118,7 @@ param instName array = [
  param environmentType string = 'dev'
 
 @description('Name of Application.')
-param applicationName string = 'gab2022'
+param applicationName string = 'ga2022'
 param storageConfig object = {
   kind: 'StorageV2'
   accessTier: 'Hot'
