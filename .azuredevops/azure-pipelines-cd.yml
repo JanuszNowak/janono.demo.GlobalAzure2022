@@ -133,9 +133,7 @@ stages:
     - task: PowerShell@2
       inputs:
         targetType: 'inline'
-        script: |
-          # Write your PowerShell commands here.
-          Write-Host $(locationMatrix3)
+        script: |          
           Write-Host $(instName)
         pwsh: true
     - download: ${{ parameters.build_ci }}
