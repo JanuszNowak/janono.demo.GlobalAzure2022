@@ -43,14 +43,17 @@ stages:
     - task: AzureCLI@2
       inputs:
         azureSubscription: 'AzureServiceConnection'
-        scriptType: 'bash'
+        scriptType: pscore
         scriptLocation: 'inlineScript'
-        inlineScript: |
+        inlineScript: >
           az upgrade
           az bicep upgrade
           az --version
           az group create --name $(rg) --location $(locationRG)
-          az deployment group create --resource-group $(rg) --template-file '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep'
+          az deployment group create
+          --resource-group $(rg)
+          --template-file '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep'
+          --parameters '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.$(env).parameters.json'
     # - task: AzureResourceGroupDeployment@2
     #   displayName: Azure Deployment:Create Or Update Resource Group action on $(rg)
     #   inputs:
@@ -123,13 +126,21 @@ stages:
     variables:
       locationMatrix3: $[ dependencies.AppDeploy_jobYY.outputs['setvarStep.locationMatrix3'] ]
     strategy:
-      matrix: $[ variables.locationMatrix3 ]
+      matrix: $(locationMatrix3)
       #matrix: $[ variables.locationMatrix2 ]
         # euw:
         #   location: euw
         # use2:
         #   location: use2
     steps:
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Write your PowerShell commands here.
+          Write-Host $(locationMatrix3)
+          Write-Host $(instName)
+        pwsh: true
     - download: ${{ parameters.build_ci }}
     - task: AzureFunctionApp@1
       displayName: 'Azure Function App Deploy: ${{ parameters.applicationName }}-$(env)-$(instName)site'
@@ -138,6 +149,8 @@ stages:
         appType: functionApp
         appName: ${{ parameters.applicationName }}-$(env)-$(instName)site
         package: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop/*.zip
+
+
 
 - ${{ if eq(parameters.destroy, true) }}:
   - stage: Deprovision
