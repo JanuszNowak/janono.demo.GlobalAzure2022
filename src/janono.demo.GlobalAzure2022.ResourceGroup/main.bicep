@@ -11,91 +11,7 @@ param location string = resourceGroup().location
 param storageAccountType string = 'Standard_LRS'
 
 param instLocation array = [
-  // 'eastasia'
-  // 'southeastasia'
-  // 'centralus'
-  // 'eastus'
-  'eastus2'
-  'westus'
-  'northcentralus'
-  'southcentralus'
-  'northeurope'
   'westeurope'
-  'japanwest'
-  'japaneast'
-  // //'brazilsout'
-  // 'australiaeast'
-  // 'australiasoutheast'
-  // 'southindia'
-  // 'centralindia'
-  // 'westindia'
-  // 'canadacentral'
-  // 'canadaeast'
-  // 'uksouth'
-  // 'ukwest'
-  // 'westcentralus'
-  // 'westus2'
-  // 'koreacentral'
-  // 'koreasouth'
-  // 'francecentral'
-  // //'francesouth'
-  // 'australiacentral'
-  // //'uaecentral'
-  // 'uaenorth'
-  // 'southafricanorth'
-  // //'southafricawest'
-  // 'switzerlandnorth'
-  // //'switzerlandwest'
-  // //'germanynorth'
-  // 'germanywestcentral'
-  // //'norwaywest'
-  // 'norwayeast'
-  // //'brazilsoutheast'
-  // 'westus3'
-
-]
-param instName array = [
-  // 'ase'
-  // 'asse'
-  // 'usc'
-  // 'use'
-  'use2'
-  'usw'
-  'usnc'
-  'ussc'
-  'eun'
-  'euw'
-  'jaw'
-  'jae'
-  // //'brs'
-  // 'aue'
-  // 'ause'
-  // 'ins'
-  // 'inc'
-  // 'inw'
-  // 'cac'
-  // 'cae'
-  // 'uks'
-  // 'ukw'
-  // 'uswc'
-  // 'usw2'
-  // 'koc'
-  // 'kos'
-  // 'frc'
-  // //'frs'
-  // 'auc'
-  // //'uac'
-  // 'uan'
-  // 'asn'
-  // //'asw'
-  // 'swn'
-  // //'sww'
-  // //'gen'
-  // 'gewc'
-  // //'now'
-  // 'noe'
-  // //'brse'
-  // 'usw3'
 ]
 
 
@@ -126,8 +42,6 @@ param nameConv object = {
 
 var namestorage = '${applicationName}${environmentType}'
 var name = '${applicationName}-${environmentType}'
-
-
 
 resource namestorage_instName_nameConv_storageAccountName 'Microsoft.Storage/storageAccounts@2021-04-01' = [for (item, i) in instLocation: {
   sku: {
@@ -224,25 +138,6 @@ resource trafficManagerProfile 'Microsoft.Network/trafficManagerProfiles@2018-08
       port: 443
       path: '/api/IsAlive'
     }
-    // endpoints: [for endpoint in trafficManagerProfile.endpoints: {
-    //   type: 'Microsoft.Network/trafficManagerProfiles/externalEndpoints'
-    //   id: '${resourceId('Microsoft.Network/trafficManagerProfiles', trafficManagerConfig.name)}/externalEndpoints/${endpoint.name}'
-    //   name: endpoint.name
-    //   properties: {
-    //     endpointStatus: 'Enabled'
-    //     target: endpoint.target
-    //   }
-    // }]
-    // endpoints: [
-    //   {
-    //     name: uniqueDnsNameForWebApp
-    //     type: 'Microsoft.Network/trafficManagerProfiles/azureEndpoints'
-    //     properties: {
-    //       targetResourceId: webSite.id
-    //       endpointStatus: 'Enabled'
-    //     }
-    //   }
-    // ]
   }
 }
 
@@ -258,12 +153,6 @@ resource trafficManagerAzureEndpoint 'Microsoft.Network/trafficManagerProfiles/a
   }
 }]
 
-//az group create --name ExampleGroup2 --location "westeurope"
-//az deployment group create --name ExampleDeployment --resource-group ExampleGroup2 --template-file .\main.bicep --mode Complete
-//az deployment group what-if --resource-group ExampleGroup3 --template-file .\main.bicep
-//az deployment group validate --resource-group ExampleGroup3 --template-file .\main.bicep
-//Get-AzLocation | Where-Object {$_.Providers -contains "Microsoft.Web"}  | select Location| Trim()
-//az bicep build --file .\main.bicep --stdout
 resource name_global_nameConv_appins 'Microsoft.Insights/components@2020-02-02' = {
   name: '${name}-global-${nameConv.appins}'
   location: location
