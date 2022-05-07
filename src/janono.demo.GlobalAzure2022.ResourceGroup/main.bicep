@@ -101,6 +101,7 @@ param instName array = [
 
 @description('Type of environment where this deployment should occur.')
 @allowed([
+  'pr'
   'dev'
   'prod'
   'jnno'
