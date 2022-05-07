@@ -197,7 +197,7 @@ resource name_instName_nameConv_siteName 'Microsoft.Web/sites@2020-12-01' = [for
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: 'InstrumentationKey=${name_global_nameConv_appins.properties.ConnectionString}'
+          value: 'InstrumentationKey=${name_global_nameConv_appins.properties.InstrumentationKey}'
         }
       ]
     }
