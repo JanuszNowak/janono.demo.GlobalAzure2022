@@ -25,6 +25,8 @@ parameters:
 trigger:
 - none
 
+pr: none
+
 resources:
   pipelines:
   - pipeline: GlobalAzure2022-ci
