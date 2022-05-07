@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentType": {
+      "value": "prod"
+    },
+    "instLocation": {
+      "value": [
+        'eastus2'
+        'westus'
+        'northcentralus'
+        'southcentralus'
+        'northeurope'
+        'westeurope'
+        'japanwest'
+        'japaneast'
+      ]
+    },
+    "instName": {
+      "value": [
+      'use2'
+      'usw'
+      'usnc'
+      'ussc'
+      'eun'
+      'euw'
+      'jaw'
+      'jae'
+      ]
+    }
+  }
+}

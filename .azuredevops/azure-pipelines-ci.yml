@@ -1,0 +1,84 @@
+pool:
+  name: Azure Pipelines
+variables:
+  buildConfiguration: Release
+  system.debug: true
+  locationRG: westeurope
+
+trigger:
+  - master
+  - release/*
+  - develop
+  - hotfix/*
+  - feature/*
+
+pr:
+  branches:
+    include:
+    - master
+    - release/*
+    - develop
+    - hotfix/*
+    - feature/*
+  paths:
+    exclude:
+    - .azuredevops/*
+jobs:
+- job: Bicep
+  steps:
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: 'Get-ChildItem -Recurse'
+      pwsh: true
+  - task: AzureCLI@2
+    displayName: Bicep Validate
+    inputs:
+      azureSubscription: AzureServiceConnection
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az group create --name pr-validation-rg --location $(locationRG)
+        az deployment group validate --resource-group pr-validation-rg --template-file '$(Pipeline.Workspace)/s/src/janono.demo.GlobalAzure2022.ResourceGroup/main.bicep' --parameters '$(Pipeline.Workspace)/s/src/janono.demo.GlobalAzure2022.ResourceGroup/main.pr.parameters.json'
+
+- job: AzureFunction 
+  steps:
+  - task: DotNetCoreCLI@2
+    displayName: Build project
+    inputs:
+      projects: '**/*.csproj'
+      arguments: --output publish_output --configuration $(buildConfiguration)
+
+  - task: ArchiveFiles@2
+    displayName: Archive files
+    inputs:
+      rootFolderOrFile: publish_output/
+      includeRootFolder: false
+
+  - task: DotNetCoreCLI@2
+    displayName: DotNetCore Tests
+    inputs:
+      command: test
+      projects: '**/*.csproj'
+      arguments: --configuration $(buildConfiguration) --collect "Code coverage"
+      workingDirectory: $(System.DefaultWorkingDirectory)
+
+  - task: PublishTestResults@2
+    displayName: Publish Test Results **/*.trx
+    inputs:
+      testResultsFormat: VSTest
+      testResultsFiles: '**/*.trx'
+      searchFolder: '$(Agent.TempDirectory) '
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+      buildConfiguration: $(buildConfiguration)
+    enabled: false
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop arm'
+    inputs:
+      PathtoPublish: src/janono.demo.GlobalAzure2022.ResourceGroup
+      ArtifactName: drop bicep

@@ -1,0 +1,128 @@
+variables:
+  system.debug: true
+  rg: ${{ parameters.applicationName }}-${{ parameters.env }}-global-rg
+  locationRG: westeurope
+  locationMatrix2: "{'use2':{'location':'use2'},'usw':{'location':'usw'},'usnc' :{'location':'usnc'},'ussc':{'location':'ussc'}}"
+
+parameters:
+- name: applicationName
+  type: string
+  default: ga2022
+- name: env
+  type: string
+  default: dev
+  values:
+  - dev
+  - prod
+
+- name: build_ci
+  type: string
+  default: GlobalAzure2022-ci
+- name: destroy
+  type: boolean
+  default: false
+
+trigger:
+- none
+
+pr: none
+
+resources:
+  pipelines:
+  - pipeline: GlobalAzure2022-ci
+    source: GlobalAzure2022-ci
+    trigger:
+      branches:
+      - release/*
+      - master
+      - develop
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+- stage: provisioning
+  displayName: Provisioning Stage
+  jobs:
+  - job: provisioning_job
+    displayName: Provisioning Job
+    steps:
+    - download: ${{ parameters.build_ci }}
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: AzureServiceConnection
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az upgrade
+          az bicep upgrade
+          az --version
+          az group create --name $(rg) --location $(locationRG)
+          az deployment group create --resource-group $(rg) --template-file '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep' --parameters '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.${{ parameters.env }}.parameters.json'
+
+- stage: Application_Deploy
+  displayName: Application Deploy Stage
+  jobs:
+  - job: generator
+    displayName: Generate Matrix
+    steps:
+    - download: ${{ parameters.build_ci }}
+    - task: PowerShell@2
+      displayName: Generate Matrix variable
+      name: mtrx
+      inputs:
+        targetType: inline
+        script: |
+          $json=Get-Content -Raw -Path '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.${{ parameters.env }}.parameters.json'| Out-String | ConvertFrom-Json
+          $foo="instName"
+          $line=$json.parameters.psobject.properties.Where({$_.name -eq $foo}).value
+
+              $i=0;
+          $output="{";
+                  foreach($a in $line.value)
+                  {
+                      $output+="'$a':{'$foo':'$a'}"
+                      $i++
+                      if($i -lt $line.value.Length)
+                      {
+                          $output+=","
+                          }
+                      }
+                  $output+="}"
+          $output
+          echo "##vso[task.setVariable variable=legs;isOutput=true]$output"
+
+  - job: Application_Deploy_Job
+    displayName: Application Deploy
+    dependsOn: generator
+    strategy:
+      matrix: $[ dependencies.generator.outputs['mtrx.legs'] ]
+      #matrix: $[ variables.locationMatrix2 ]
+        # euw:
+        #   location: euw
+        # use2:
+        #   location: use2
+    steps:
+    - download: ${{ parameters.build_ci }}
+    - task: AzureFunctionApp@1
+      displayName: 'Azure Function App Deploy: ${{ parameters.applicationName }}-${{ parameters.env }}-$(instName)site'
+      inputs:
+        azureSubscription: AzureServiceConnection
+        appType: functionAppLinux # default is functionApp
+        appName: ${{ parameters.applicationName }}-${{ parameters.env }}-$(instName)site
+        package: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop/*.zip
+
+
+- ${{ if eq(parameters.destroy, true) }}:
+  - stage: Deprovision
+    displayName: Deprovision Stage
+    jobs:
+    - job: Deprovision_job
+      displayName: Deprovision Job
+      steps:
+      - task: AzureResourceGroupDeployment@2
+        displayName: Azure Deployment:DeleteRG action on $(rg)
+        inputs:
+          azureSubscription: AzureServiceConnection
+          action: DeleteRG
+          resourceGroupName: $(rg)
