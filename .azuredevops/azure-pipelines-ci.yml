@@ -39,7 +39,7 @@ jobs:
       scriptLocation: inlineScript
       inlineScript: |
         az group create --name pr-validation-rg --location $(locationRG)
-        az deployment group validate --resource-group pr-validation-rg --template-file '$(Pipeline.Workspace)/s/src/janono.demo.GlobalAzure2022.ResourceGroup/main.bicep' --parameters '$(Pipeline.Workspace)/s/src/janono.demo.GlobalAzure2022.ResourceGroup/main.dev.parameters.json'
+        az deployment group validate --resource-group pr-validation-rg --template-file '$(Pipeline.Workspace)/s/src/janono.demo.GlobalAzure2022.ResourceGroup/main.bicep' --parameters '$(Pipeline.Workspace)/s/src/janono.demo.GlobalAzure2022.ResourceGroup/main.pr.parameters.json'
 
 - job: AzureFunction 
   steps:
