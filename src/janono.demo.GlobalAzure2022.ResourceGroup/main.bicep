@@ -14,6 +14,9 @@ param instLocation array = [
   'westeurope'
 ]
 
+param instName array = [
+  'euw'
+]
 
 @description('Type of environment where this deployment should occur.')
 @allowed([
