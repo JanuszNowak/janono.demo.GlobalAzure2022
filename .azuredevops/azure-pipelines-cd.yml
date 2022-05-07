@@ -65,7 +65,7 @@ stages:
       inputs:
         targetType: inline
         script: |
-          $json=Get-Content -Raw -Path '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.dev.parameters.json'| Out-String | ConvertFrom-Json
+          $json=Get-Content -Raw -Path '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.$(env).parameters.json'| Out-String | ConvertFrom-Json
           $foo="instName"
           $line=$json.parameters.psobject.properties.Where({$_.name -eq $foo}).value
 
