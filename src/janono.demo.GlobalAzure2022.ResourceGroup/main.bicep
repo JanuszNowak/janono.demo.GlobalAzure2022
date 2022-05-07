@@ -98,15 +98,6 @@ param instName array = [
   // 'usw3'
 ]
 
-// param switchVal string
-// var myVar = {
-//   first: 'name1'
-//   second: 'name2'
-//   third: 'name3'
-// }
-
-// var chosenName = myVar[switchVal]
-
 
 @description('Type of environment where this deployment should occur.')
 @allowed([

@@ -1,5 +1,7 @@
-using System.IO;
+using System;
+using System.ComponentModel;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +16,8 @@ namespace janono.demo.GlobalAzure2022.FunctionApp
 {
     public class IsAlive
     {
+        public static readonly string ApplicationVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
         private readonly ILogger<IsAlive> _logger;
 
         public IsAlive(ILogger<IsAlive> log)
@@ -21,27 +25,37 @@ namespace janono.demo.GlobalAzure2022.FunctionApp
             _logger = log;
         }
 
-        [FunctionName("Function1")]
+        [FunctionName("IsAlive")]
         [OpenApiOperation(operationId: "Run", tags: new[] { "name" })]
-        [OpenApiParameter(name: "name", In = ParameterLocation.Query, Required = true, Type = typeof(string), Description = "The **Name** parameter")]
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string), Description = "The OK response")]
-        public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req)
+        public Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
-
-            string name = req.Query["name"];
-
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
-
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
-
-            return new OkObjectResult(responseMessage);
+            var result = new IsAliveContract
+            {
+                isAlive = true,
+                timestamp = DateTimeOffset.UtcNow,
+                version = ApplicationVersion,
+                regionName = Environment.GetEnvironmentVariable("REGION_NAME")
+            };
+            return Task.FromResult<IActionResult>(new OkObjectResult(result));
         }
+    }
+
+    [Description("Is Alive Contract")]
+    public class IsAliveContract
+    {
+        [System.ComponentModel.DataAnnotations.Display(Description = "Version of Application")]
+        public string version { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Display(Description = "TimeStamp")]
+        public DateTimeOffset timestamp { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Display(Description = "Is Alive Value")]
+        public bool isAlive { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Display(Description = "Region name")]
+        public string regionName { get; set; }
     }
 }
 

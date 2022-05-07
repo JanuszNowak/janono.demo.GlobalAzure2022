@@ -1,6 +1,9 @@
 {
   "recommendations": [
-    "EditorConfig.EditorConfig"
+    "ms-azuretools.vscode-azurefunctions",
+    "ms-dotnettools.csharp",
+    "editorconfig.editorconfig",
+    "ms-azuretools.vscode-bicep"
   ],
   "unwantedRecommendations": []
 }

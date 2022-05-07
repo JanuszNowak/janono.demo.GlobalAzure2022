@@ -2,7 +2,7 @@ variables:
   system.debug: true
   env: dev
   rg: ${{ parameters.applicationName }}-$(env)-global-rg
-  locationRG: "westeurope"  
+  locationRG: westeurope
   locationMatrix2: "{'use2':{'location':'use2'},'usw':{'location':'usw'},'usnc' :{'location':'usnc'},'ussc':{'location':'ussc'}}"
 
 parameters:
@@ -42,9 +42,9 @@ stages:
     - download: ${{ parameters.build_ci }}
     - task: AzureCLI@2
       inputs:
-        azureSubscription: 'AzureServiceConnection'
+        azureSubscription: AzureServiceConnection
         scriptType: bash
-        scriptLocation: 'inlineScript'
+        scriptLocation: inlineScript
         inlineScript: |
           az upgrade
           az bicep upgrade
@@ -63,7 +63,7 @@ stages:
       displayName: Generate Matrix variable
       name: mtrx
       inputs:
-        targetType: 'inline'
+        targetType: inline
         script: |
           $json=Get-Content -Raw -Path '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.dev.parameters.json'| Out-String | ConvertFrom-Json
           $foo="instName"

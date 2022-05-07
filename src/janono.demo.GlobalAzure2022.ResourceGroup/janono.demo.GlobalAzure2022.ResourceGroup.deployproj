@@ -24,8 +24,6 @@
   <!-- vertag<:>end -->
   <ItemGroup>
     <Content Include="main.bicep" />
-    <Content Include="azuredeploy.json" />
-    <Content Include="azuredeploy.parameters.json" />
     <None Include="Deployment.targets">
       <Visible>False</Visible>
     </None>
