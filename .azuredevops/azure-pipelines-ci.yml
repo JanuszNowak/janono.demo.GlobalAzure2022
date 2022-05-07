@@ -6,16 +6,11 @@ variables:
   locationRG: westeurope
 
 trigger:
-  branches:
-    include:
-    - master
-    - release/*
-    - develop
-    - hotfix/*
-    - feature/*
-  paths:
-    exclude:
-    - .azuredevops/*
+  - master
+  - release/*
+  - develop
+  - hotfix/*
+  - feature/*
 
 pr:
   branches:
