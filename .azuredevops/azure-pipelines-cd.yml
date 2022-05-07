@@ -1,7 +1,6 @@
 variables:
   system.debug: true
-  env: dev
-  rg: ${{ parameters.applicationName }}-$(env)-global-rg
+  rg: ${{ parameters.applicationName }}-${{ parameters.env }}-global-rg
   locationRG: westeurope
   locationMatrix2: "{'use2':{'location':'use2'},'usw':{'location':'usw'},'usnc' :{'location':'usnc'},'ussc':{'location':'ussc'}}"
 
@@ -9,6 +8,13 @@ parameters:
 - name: applicationName
   type: string
   default: ga2022
+- name: env
+  type: string
+  default: dev
+  values:
+  - dev
+  - prod
+
 - name: build_ci
   type: string
   default: GlobalAzure2022-ci
@@ -50,7 +56,7 @@ stages:
           az bicep upgrade
           az --version
           az group create --name $(rg) --location $(locationRG)
-          az deployment group create --resource-group $(rg) --template-file '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep' --parameters '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.$(env).parameters.json'
+          az deployment group create --resource-group $(rg) --template-file '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep' --parameters '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.${{ parameters.env }}.parameters.json'
 
 - stage: Application_Deploy
   displayName: Application Deploy Stage
@@ -65,7 +71,7 @@ stages:
       inputs:
         targetType: inline
         script: |
-          $json=Get-Content -Raw -Path '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.$(env).parameters.json'| Out-String | ConvertFrom-Json
+          $json=Get-Content -Raw -Path '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.${{ parameters.env }}.parameters.json'| Out-String | ConvertFrom-Json
           $foo="instName"
           $line=$json.parameters.psobject.properties.Where({$_.name -eq $foo}).value
 
@@ -97,11 +103,11 @@ stages:
     steps:
     - download: ${{ parameters.build_ci }}
     - task: AzureFunctionApp@1
-      displayName: 'Azure Function App Deploy: ${{ parameters.applicationName }}-$(env)-$(instName)site'
+      displayName: 'Azure Function App Deploy: ${{ parameters.applicationName }}-${{ parameters.env }}-$(instName)site'
       inputs:
         azureSubscription: AzureServiceConnection
         appType: functionAppLinux # default is functionApp
-        appName: ${{ parameters.applicationName }}-$(env)-$(instName)site
+        appName: ${{ parameters.applicationName }}-${{ parameters.env }}-$(instName)site
         package: $(Pipeline.Workspace)/${{ parameters.build_ci }}/drop/*.zip
 
 
