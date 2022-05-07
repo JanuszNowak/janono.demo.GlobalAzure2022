@@ -3,6 +3,7 @@ pool:
 variables:
   buildConfiguration: Release
   system.debug: true
+  locationRG: westeurope
 
 trigger:
   branches:
@@ -48,6 +49,16 @@ steps:
     projects: '**/*.csproj'
     arguments: --configuration $(buildConfiguration) --collect "Code coverage"
     workingDirectory: $(System.DefaultWorkingDirectory)
+
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: AzureServiceConnection
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      az group create
+      az group validate --name pr-validation --location $(locationRG)
+      az deployment group create --resource-group $(rg) --template-file '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.bicep' --parameters '$(Pipeline.Workspace)/${{ parameters.build_ci }}/drop bicep/main.$(env).parameters.json'
 
 - task: PublishTestResults@2
   displayName: Publish Test Results **/*.trx

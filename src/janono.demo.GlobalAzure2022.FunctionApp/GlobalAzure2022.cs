@@ -24,7 +24,7 @@ namespace janono.demo.GlobalAzure2022.FunctionApp
         [FunctionName("GlobalAzure2022")]
         [OpenApiOperation(operationId: "Run", tags: new[] { "name" })]
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string), Description = "The OK response")]
-        public Task<IActionResult> Run(
+        public Task<ContentResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
